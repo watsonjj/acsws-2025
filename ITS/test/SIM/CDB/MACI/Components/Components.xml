@@ -44,7 +44,7 @@
        Container="pySimContainer" ImplLang="py" />
 
     <e Name="SCHEDULER"
-       Code="pyscheduler.scheduler.Scheduler"
+       Code="pyscheduler.scheduler"
        Type="IDL:acsws/SCHEDULER_MODULE/Scheduler:1.0"
        Container="pyContainer" ImplLang="py" />
 <!-- END Simulated high level components. -->
