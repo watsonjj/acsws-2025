@@ -16,8 +16,18 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         ACSComponent.__init__(self)
         ContainerServices.__init__(self)
         self._logger = self.getLogger()
-        # self._logger.log("Starting")
+        self._running = False
 
-    def printHello(self):
-        print("Just printing 'Hello World!'")
-        return "Hello World!"
+    def start(self):
+        self._logger.logInfo(f"{self.name}: start called")
+        if self._running:
+            # TODO
+            print("TODO: already running - raise exception")
+        self._running = True
+
+    def stop(self):
+        self._logger.logInfo(f"{self.name}: stop called")
+        if self._running:
+            # TODO
+            print("TODO: already stopped - raise exception")
+        self._running = False
