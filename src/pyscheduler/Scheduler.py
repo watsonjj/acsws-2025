@@ -31,3 +31,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
             # TODO
             print("TODO: already stopped - raise exception")
         self._running = False
+
+    def proposalUnderExecution(self) -> int:
+        proposal_under_execution = 123  # TODO
+        return proposal_under_execution
