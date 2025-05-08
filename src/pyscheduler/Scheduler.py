@@ -9,6 +9,7 @@ from Acspy.Servants.ACSComponent import ACSComponent
 from Acspy.Servants.ContainerServices import ContainerServices
 # Basic component lifecycle (initialize, execute, cleanUp and aboutToAbort methods)
 from Acspy.Servants.ComponentLifecycle import ComponentLifecycle
+from Acspy.Clients.SimpleClient import PySimpleClient
 
 
 class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices, ComponentLifecycle):
@@ -17,6 +18,11 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         ContainerServices.__init__(self)
         self._logger = self.getLogger()
         self._running = False
+
+        client = PySimpleClient()
+        self._instruments = client.getComponent("INSTRUMENT_S")
+        self._db = client.getComponent("DATABASE_S")
+        self._telescope = client.getComponent("TELESCOPE_S")
 
     def start(self):
         self._logger.logInfo(f"{self.name}: start called")
