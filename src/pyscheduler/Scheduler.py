@@ -10,6 +10,7 @@ from Acspy.Servants.ContainerServices import ContainerServices
 # Basic component lifecycle (initialize, execute, cleanUp and aboutToAbort methods)
 from Acspy.Servants.ComponentLifecycle import ComponentLifecycle
 from Acspy.Clients.SimpleClient import PySimpleClient
+import SYSTEMErrImpl
 
 COMPONENTS = {
     "SCHEDULER_PY_TEST": ("INSTRUMENT_S", "DATABASE_S", "TELESCOPE_S"),
@@ -75,7 +76,10 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
 
     def start(self):
         self._logger.logInfo(f"{self.name}: start called")
-        
+        if self._running:
+            raise SYSTEMErrImpl.SchedulerAlreadyRunningExImpl()
+        self._running = True
+
         self._proposalList = self._getProposalsFromDB()
         
         for proposal in self._proposalList:
@@ -83,24 +87,16 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
             self._setProposalStatus(self._pid,PROPOSAL_STATUSES["running"])
             self._turnCameraOn()
 
-            
-        if self._running:
-            # TODO
-            print("TODO: already running - raise exception")
-        self._running = True
-
     def stop(self):
         self._logger.logInfo(f"{self.name}: stop called")
         if not self._running:
-            # TODO
-            print("TODO: already stopped - raise exception")
+            raise SYSTEMErrImpl.SchedulerAlreadyStoppedExImpl()
         self._running = False
 
     def proposalUnderExecution(self) -> int:
         self._logger.logInfo(f"{self.name}: proposalUnderExecution called")
         proposal_under_execution = 123  # TODO
         if proposal_under_execution is None:
-            # TODO
-            print("TODO: no proposal under execution - raise exception")
+            raise SYSTEMErrImpl.NoProposalExecutingExImpl()
         self._logger.logInfo(f"proposalUnderExecution: {proposal_under_execution}")
         return proposal_under_execution
