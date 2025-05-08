@@ -42,10 +42,10 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         children = COMPONENTS[self.name]
         self._logger.logInfo(f"Creating child components: {children}")
         instrument_name, db_name, telescope_name = children
-        client = PySimpleClient()
-        self._instrument = client.getComponent(instrument_name)
-        self._db = client.getComponent(db_name)
-        self._telescope = client.getComponent(telescope_name)
+        self._client = PySimpleClient()
+        self._instrument = self._client.getComponent(instrument_name)
+        self._db = self._client.getComponent(db_name)
+        self._telescope = self._client.getComponent(telescope_name)
 
     #DB Methods!
     def _getProposalsFromDB(self):
@@ -57,7 +57,6 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
     def _setProposalStatus(self, pid, status):
         self._logger.logInfo(f"{self.name}: setProposalStatus called with parameters pid:{pid}, status:{status}")
         self._db.setProposalStatus(pid, status)
-        self._logger.logError(f"{self.name}: An error occurred when setting the parameters")
 
     def _storeObservation(self, pid, tid, image):
         self._logger.logInfo(f"{self.name}: setProposalStatus called with parameters pid:{pid}, tid:{tid}")
@@ -70,7 +69,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
 
     def _turnCameraOff(self):
         self._logger.logInfo(f"{self.name}: turnCameraOff called")
-        self._instrument.cameraOn()
+        self._instrument.cameraOff()
 
     #Telescope Methods!
     def _telescopeObserve(self,position, exposureTime):
