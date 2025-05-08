@@ -1,4 +1,6 @@
 # Client stubs and definitions, such as structs, enums, etc.
+import time
+
 import SCHEDULER_MODULE
 # Skeleton infrastructure for server implementation
 import SCHEDULER_MODULE__POA
@@ -11,6 +13,9 @@ from Acspy.Servants.ContainerServices import ContainerServices
 from Acspy.Servants.ComponentLifecycle import ComponentLifecycle
 from Acspy.Clients.SimpleClient import PySimpleClient
 import SYSTEMErrImpl
+from concurrent.futures import ThreadPoolExecutor
+import signal
+import threading
 
 COMPONENTS = {
     "SCHEDULER_PY_TEST": ("INSTRUMENT_S", "DATABASE_S", "TELESCOPE_S"),
@@ -36,6 +41,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         self._pid = None
         self._image = None
         self._client = None
+        self._executor = ThreadPoolExecutor(max_workers=1)
 
     def initialize(self):
         super().initialize()
@@ -47,6 +53,17 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         self._instrument = self._client.getComponent(instrument_name)
         self._db = self._client.getComponent(db_name)
         self._telescope = self._client.getComponent(telescope_name)
+
+    def cleanUp(self):
+        self._logger.logInfo(f"Cleanup component: {self.name}")
+        super().cleanUp()
+        # children = COMPONENTS[self.name]
+        # self._logger.logInfo(f"Releasing child components: {children}")
+        # instrument_name, db_name, telescope_name = children
+        # self.releaseComponent(instrument_name)
+        # self.releaseComponent(db_name)
+        # self.releaseComponent(telescope_name)
+        self._executor.shutdown(wait=True, cancel_futures=True)
 
     #DB Methods!
     def _getProposalsFromDB(self):
@@ -78,32 +95,42 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         image = self._telescope.observe(position, exposureTime)
         return image
 
+    def _process_proposals(self):
+        self._proposalList = self._getProposalsFromDB()
+
+        for proposal in self._proposalList:
+            if self._running is False:
+                self._logger.logInfo("Proposal aborted")
+                break
+            
+            self._pid = proposal.pid
+            target_list = proposal.targets
+            self._setProposalStatus(self._pid, PROPOSAL_STATUSES["running"])
+            self._turnCameraOn()
+
+            for target in target_list:
+                if self._running is False:
+                    self._logger.logInfo("Observation aborted")
+                    break
+                
+                position = target.coordinates
+                exp = target.expTime
+                tid = target.tid
+                self._image = self._telescopeObserve(position, exp)
+                self._storeObservation(self._pid, tid, self._image)
+                time.sleep(1)
+
+            self._turnCameraOff()
+            self._setProposalStatus(self._pid, PROPOSAL_STATUSES['ready'])
+        
+
     def start(self):
         self._logger.logInfo(f"{self.name}: start called")
         if self._running:
             self._logger.error("Already running")
             raise SYSTEMErrImpl.SchedulerAlreadyRunningExImpl()
         self._running = True
-
-        self._proposalList = self._getProposalsFromDB()
-        
-        for proposal in self._proposalList:
-            self._pid=proposal.pid
-            target_list = proposal.targets
-            self._setProposalStatus(self._pid,PROPOSAL_STATUSES["running"])
-            self._turnCameraOn()
-
-
-            for target in target_list:
-                position=target.coordinates
-                exp=target.expTime
-                tid=target.tid
-                self._image=self._telescopeObserve(position,exp)
-                self._storeObservation(self._pid,tid,self._image)
-            
-            self._turnCameraOff()
-            self._setProposalStatus(self._pid,PROPOSAL_STATUSES['ready'])
-            
+        self._executor.submit(self._process_proposals)
 
     def stop(self):
         self._logger.logInfo(f"{self.name}: stop called")
