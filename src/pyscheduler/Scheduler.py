@@ -61,7 +61,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
 
     def _storeObservation(self, pid, tid, image):
         self._logger.logInfo(f"{self.name}: setProposalStatus called with parameters pid:{pid}, tid:{tid}")
-        self._db.storeObservation(pid, tid, image)
+        self._db.storeImage(pid, tid, image)
 
     #Instrument Methods!
     def _turnCameraOn(self):
