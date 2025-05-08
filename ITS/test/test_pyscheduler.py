@@ -29,11 +29,26 @@ def test_proposalUnderExecution(scheduler):
         scheduler.proposalUnderExecution()
 
     scheduler.start()
+    # Wait until observations have started
+    n_attempts = 100
+    for _ in range(n_attempts):
+        if scheduler.proposalUnderExecution() is not None:
+            break
+        time.sleep(0.1)
+    else:
+        raise TimeoutError("Condition not reached within time")
     assert scheduler.proposalUnderExecution() > 0
 
     scheduler.stop()
     # Wait until the observation is complete
-    time.sleep(3)  # TODO: sleep long enough?
-
+    n_attempts = 100
+    for _ in range(n_attempts):
+        try:
+            scheduler.proposalUnderExecution()
+            time.sleep(0.1)
+        except SYSTEMErr.NoProposalExecutingEx:
+            break
+    else:
+        raise TimeoutError("Condition not reached within time")
     with pytest.raises(SYSTEMErr.NoProposalExecutingEx):
         scheduler.proposalUnderExecution()

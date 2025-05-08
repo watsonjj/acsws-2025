@@ -33,6 +33,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         self._instrument = None
         self._db = None
         self._telescope = None
+        self._pid = None
 
     def initialize(self):
         super().initialize()
@@ -96,7 +97,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
 
     def proposalUnderExecution(self) -> int:
         self._logger.logInfo(f"{self.name}: proposalUnderExecution called")
-        proposal_under_execution = 123  # TODO
+        proposal_under_execution = self._pid
         if proposal_under_execution is None:
             raise SYSTEMErrImpl.NoProposalExecutingExImpl()
         self._logger.logInfo(f"proposalUnderExecution: {proposal_under_execution}")
