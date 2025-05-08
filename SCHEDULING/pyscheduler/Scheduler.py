@@ -27,7 +27,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
 
     def stop(self):
         self._logger.logInfo(f"{self.name}: stop called")
-        if self._running:
+        if not self._running:
             # TODO
             print("TODO: already stopped - raise exception")
         self._running = False
