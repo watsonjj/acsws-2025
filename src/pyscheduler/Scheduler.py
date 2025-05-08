@@ -24,7 +24,13 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         self._logger = self.getLogger()
         self._running = False
 
-        self._logger.logInfo(f"Created component: {self.name}")
+        self._instrument = None
+        self._db = None
+        self._telescope = None
+
+    def initialize(self):
+        super().initialize()
+        self._logger.logInfo(f"Initialized component: {self.name}")
         children = COMPONENTS[self.name]
         self._logger.logInfo(f"Creating child components: {children}")
         instrument_name, db_name, telescope_name = children
