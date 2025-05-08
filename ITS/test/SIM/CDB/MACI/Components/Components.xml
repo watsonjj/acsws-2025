@@ -43,7 +43,7 @@
        Type="IDL:acsws/SCHEDULER_MODULE/Scheduler:1.0"
        Container="pySimContainer" ImplLang="py" />
 
-    <e Name="SCHEDULER"
+    <e Name="SCHEDULER_PY"
        Code="pyscheduler.Scheduler"
        Type="IDL:acsws/SCHEDULER_MODULE/Scheduler:1.0"
        Container="pyContainer" ImplLang="py" />
