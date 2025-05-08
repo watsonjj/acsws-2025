@@ -11,6 +11,11 @@ from Acspy.Servants.ContainerServices import ContainerServices
 from Acspy.Servants.ComponentLifecycle import ComponentLifecycle
 from Acspy.Clients.SimpleClient import PySimpleClient
 
+COMPONENTS = {
+    "SCHEDULER_PY_TEST": ("INSTRUMENT_S", "DATABASE_S", "TELESCOPE_S"),
+    "SCHEDULER_PY": ("INSTRUMENT", "DATABASE", "TELESCOPE"),
+}
+
 
 class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices, ComponentLifecycle):
     def __init__(self):
@@ -19,10 +24,14 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         self._logger = self.getLogger()
         self._running = False
 
+        self._logger.logInfo(f"Created component: {self.name}")
+        children = COMPONENTS[self.name]
+        self._logger.logInfo(f"Creating child components: {children}")
+        instrument_name, db_name, telescope_name = children
         client = PySimpleClient()
-        self._instruments = client.getComponent("INSTRUMENT_S")
-        self._db = client.getComponent("DATABASE_S")
-        self._telescope = client.getComponent("TELESCOPE_S")
+        self._instrument = client.getComponent(instrument_name)
+        self._db = client.getComponent(db_name)
+        self._telescope = client.getComponent(telescope_name)
 
     def start(self):
         self._logger.logInfo(f"{self.name}: start called")
