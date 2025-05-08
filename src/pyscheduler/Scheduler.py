@@ -93,10 +93,17 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
             self._setProposalStatus(self._pid,PROPOSAL_STATUSES["running"])
             self._turnCameraOn()
 
+
             for target in target_list:
                 position=target.coordinates
                 exp=target.expTime
+                tid=target.tid
                 self._image=self._telescopeObserve(position,exp)
+                self._storeObservation(self._pid,tid,self._image)
+            
+            self._turnCameraOff()
+            self._setProposalStatus(self._pid,PROPOSAL_STATUSES['ready'])
+            
 
     def stop(self):
         self._logger.logInfo(f"{self.name}: stop called")
