@@ -34,6 +34,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         self._db = None
         self._telescope = None
         self._pid = None
+        self._image = None
 
     def initialize(self):
         super().initialize()
@@ -93,6 +94,9 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
 
             for target in target_list:
                 position=target.coordinates
+                exp=target.expTime
+                self._image=self._telescopeObserve(position,exp)
+
                 
 
 
