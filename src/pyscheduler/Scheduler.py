@@ -33,8 +33,10 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         self._running = False
 
     def proposalUnderExecution(self) -> int:
+        self._logger.logInfo(f"{self.name}: proposalUnderExecution called")
         proposal_under_execution = 123  # TODO
         if proposal_under_execution is None:
             # TODO
             print("TODO: no proposal under execution - raise exception")
+        self._logger.logInfo(f"proposalUnderExecution: {proposal_under_execution}")
         return proposal_under_execution
