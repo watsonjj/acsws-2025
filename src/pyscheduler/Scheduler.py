@@ -35,6 +35,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         self._telescope = None
         self._pid = None
         self._image = None
+        self._client = None
 
     def initialize(self):
         super().initialize()
