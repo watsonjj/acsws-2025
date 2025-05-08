@@ -75,6 +75,15 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
 
     def start(self):
         self._logger.logInfo(f"{self.name}: start called")
+        
+        self._proposalList = self._getProposalsFromDB()
+        
+        for proposal in self._proposalList:
+            self._pid=proposal.pid
+            self._setProposalStatus(self._pid,PROPOSAL_STATUSES["running"])
+            self._turnCameraOn()
+
+            
         if self._running:
             # TODO
             print("TODO: already running - raise exception")
