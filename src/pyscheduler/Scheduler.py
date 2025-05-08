@@ -16,6 +16,11 @@ COMPONENTS = {
     "SCHEDULER_PY": ("INSTRUMENT", "DATABASE", "TELESCOPE"),
 }
 
+PROPOSAL_STATUSES = {
+    'queued':0,
+    'running':1,
+    'ready':2
+}
 
 class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices, ComponentLifecycle):
     def __init__(self):
@@ -38,6 +43,35 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         self._instrument = client.getComponent(instrument_name)
         self._db = client.getComponent(db_name)
         self._telescope = client.getComponent(telescope_name)
+
+    #DB Methods!
+    def _getProposalsFromDB(self):
+        self._logger.logInfo(f"{self.name}: getProposalsFromDB called")
+        proposals = self._db.getProposals()
+        self._logger.logInfo(f"{self.name}: db returned {len(proposals)} proposals!")
+
+    def _setProposalStatus(self, pid, status):
+        self._logger.logInfo(f"{self.name}: setProposalStatus called with parameters pid:{pid}, status:{status}")
+        self._db.setProposalStatus(pid, status)
+        self._logger.logError(f"{self.name}: An error occurred when setting the parameters")
+
+    def _storeObservation(self, pid, tid, image):
+        self._logger.logInfo(f"{self.name}: setProposalStatus called with parameters pid:{pid}, tid:{tid}")
+        self._db.storeObservation(pid, tid, image)
+
+    #Instrument Methods!
+    def _turnCameraOn(self):
+        self._logger.logInfo(f"{self.name}: turnCameraOn called")
+        self._instrument.cameraOn()
+
+    def _turnCameraOff(self):
+        self._logger.logInfo(f"{self.name}: turnCameraOff called")
+        self._instrument.cameraOn()
+
+    #Telescope Methods!
+    def _telescopeObserve(self,position, exposureTime):
+        self._logger.logInfo(f"{self.name}: telescopeObserve called")
+        self._telescopeObserve(position, exposureTime)
 
     def start(self):
         self._logger.logInfo(f"{self.name}: start called")
