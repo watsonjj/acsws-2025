@@ -34,4 +34,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
 
     def proposalUnderExecution(self) -> int:
         proposal_under_execution = 123  # TODO
+        if proposal_under_execution is None:
+            # TODO
+            print("TODO: no proposal under execution - raise exception")
         return proposal_under_execution
