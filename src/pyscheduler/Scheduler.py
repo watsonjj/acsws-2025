@@ -50,6 +50,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         self._logger.logInfo(f"{self.name}: getProposalsFromDB called")
         proposals = self._db.getProposals()
         self._logger.logInfo(f"{self.name}: db returned {len(proposals)} proposals!")
+        return proposals
 
     def _setProposalStatus(self, pid, status):
         self._logger.logInfo(f"{self.name}: setProposalStatus called with parameters pid:{pid}, status:{status}")
