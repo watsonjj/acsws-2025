@@ -71,7 +71,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
     #Telescope Methods!
     def _telescopeObserve(self,position, exposureTime):
         self._logger.logInfo(f"{self.name}: telescopeObserve called")
-        self._telescopeObserve(position, exposureTime)
+        self._telescope.observe(position, exposureTime)
 
     def start(self):
         self._logger.logInfo(f"{self.name}: start called")
