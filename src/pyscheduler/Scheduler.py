@@ -81,6 +81,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
     def start(self):
         self._logger.logInfo(f"{self.name}: start called")
         if self._running:
+            self._logger.error("Already running")
             raise SYSTEMErrImpl.SchedulerAlreadyRunningExImpl()
         self._running = True
 
@@ -88,7 +89,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         
         for proposal in self._proposalList:
             self._pid=proposal.pid
-            target_list = proposal.target
+            target_list = proposal.targets
             self._setProposalStatus(self._pid,PROPOSAL_STATUSES["running"])
             self._turnCameraOn()
 
@@ -97,14 +98,13 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
                 exp=target.expTime
                 self._image=self._telescopeObserve(position,exp)
 
-                
-
-
     def stop(self):
         self._logger.logInfo(f"{self.name}: stop called")
         if not self._running:
+            self._logger.error("Already stopped")
             raise SYSTEMErrImpl.SchedulerAlreadyStoppedExImpl()
         self._running = False
+        self._logger.logInfo(f"{self.name}: stop completed")
 
     def proposalUnderExecution(self) -> int:
         self._logger.logInfo(f"{self.name}: proposalUnderExecution called")
