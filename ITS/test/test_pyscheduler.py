@@ -39,6 +39,11 @@ def await_stop(scheduler, timeout: float):
         raise TimeoutError("Condition not reached within time")
 
 
+def test_already_stopped(scheduler):
+    with pytest.raises(SYSTEMErr.SchedulerAlreadyStoppedEx):
+        scheduler.stop()
+
+
 def test_start_stop(scheduler):
     scheduler.start()
     time.sleep(3)

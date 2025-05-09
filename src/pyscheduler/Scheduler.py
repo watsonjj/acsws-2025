@@ -121,7 +121,6 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
                 tid = target.tid
                 self._image = self._telescopeObserve(position, exp)
                 self._storeObservation(self._pid, tid, self._image)
-                time.sleep(1)
 
             self._turnCameraOff()
             self._setProposalStatus(self._pid, PROPOSAL_STATUSES['ready'])
@@ -133,6 +132,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         if self._running:
             self._logger.error("Already running")
             raise SYSTEMErrImpl.SchedulerAlreadyRunningExImpl()
+            # raise SYSTEMErrImpl.SchedulerAlreadyRunningExImpl().getSchedulerAlreadyRunningEx()
         self._running = True
         self._executor.submit(self._process_proposals, self._stop)
 
@@ -141,6 +141,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         if not self._running:
             self._logger.error("Already stopped")
             raise SYSTEMErrImpl.SchedulerAlreadyStoppedExImpl()
+            # raise SYSTEMErrImpl.SchedulerAlreadyStoppedExImpl().getSchedulerAlreadyStoppedEx()
         self._running = False
         self._stop.set()
         self._logger.logInfo(f"{self.name}: stop completed")
@@ -150,5 +151,6 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         proposal_under_execution = self._pid
         if proposal_under_execution is None:
             raise SYSTEMErrImpl.NoProposalExecutingExImpl()
+            # raise SYSTEMErrImpl.NoProposalExecutingExImpl().getNoProposalExecutingEx()
         self._logger.logInfo(f"proposalUnderExecution: {proposal_under_execution}")
         return proposal_under_execution
