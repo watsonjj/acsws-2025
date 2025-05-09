@@ -18,9 +18,11 @@ import signal
 import threading
 
 
+DEFAULT_COMPONENTS = ("INSTRUMENT", "DATABASE", "TELESCOPE")
 COMPONENTS = {
     "SCHEDULER_PY_TEST": ("INSTRUMENT_S", "DATABASE_S", "TELESCOPE_S"),
     "SCHEDULER_PY": ("INSTRUMENT", "DATABASE", "TELESCOPE"),
+    "SCHEDULER": ("INSTRUMENT", "DATABASE", "TELESCOPE"),
 }
 
 PROPOSAL_STATUSES = {
@@ -50,7 +52,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
     def initialize(self):
         super().initialize()
         self._logger.logInfo(f"Initialized component: {self.name}")
-        children = COMPONENTS[self.name]
+        children = COMPONENTS.get(self.name, DEFAULT_COMPONENTS)
         self._logger.logInfo(f"Creating child components: {children}")
         instrument_name, db_name, telescope_name = children
         self._client = PySimpleClient()
@@ -62,7 +64,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         self._logger.logInfo(f"Cleanup component: {self.name}")
         self._executor.shutdown(wait=True, cancel_futures=True)
         super().cleanUp()
-        children = COMPONENTS[self.name]
+        children = COMPONENTS.get(self.name, DEFAULT_COMPONENTS)
         self._logger.logInfo(f"Releasing child components: {children}")
         instrument_name, db_name, telescope_name = children
         self._client.releaseComponent(instrument_name)
