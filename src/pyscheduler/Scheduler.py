@@ -140,7 +140,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
             # raise SYSTEMErrImpl.SchedulerAlreadyRunningExImpl().getSchedulerAlreadyRunningEx()
         self._running = True
         self._executor.submit(self._process_proposals, self._started, self._stop, self._finished)
-        self._started.wait()
+        self._started.wait(timeout=10)
         self._started.clear()
 
     def stop(self):
@@ -150,7 +150,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
             raise SYSTEMErrImpl.SchedulerAlreadyStoppedExImpl()
             # raise SYSTEMErrImpl.SchedulerAlreadyStoppedExImpl().getSchedulerAlreadyStoppedEx()
         self._stop.set()
-        self._finished.wait()
+        self._finished.wait(timeout=10)
         self._finished.clear()
         self._logger.logInfo(f"{self.name}: stop completed")
 
