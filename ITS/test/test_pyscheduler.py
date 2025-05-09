@@ -8,6 +8,35 @@ def scheduler():
     c = PySimpleClient()
     scheduler = c.getComponent("SCHEDULER_PY_TEST")
     yield scheduler
+    c.releaseComponent("SCHEDULER_PY_TEST")
+    c.disconnect()
+
+
+def await_start(scheduler, timeout: float):
+    interval = 0.1  # seconds
+    n_attempts = int(timeout // interval)
+    for _ in range(n_attempts):
+        try:
+            scheduler.proposalUnderExecution()
+            break
+        except SYSTEMErr.NoProposalExecutingEx:
+            time.sleep(interval)
+            continue
+    else:
+        raise TimeoutError("Condition not reached within time")
+
+
+def await_stop(scheduler, timeout: float):
+    interval = 0.1  # seconds
+    n_attempts = int(timeout // interval)
+    for _ in range(n_attempts):
+        try:
+            scheduler.proposalUnderExecution()
+            time.sleep(interval)
+        except SYSTEMErr.NoProposalExecutingEx:
+            break
+    else:
+        raise TimeoutError("Condition not reached within time")
 
 
 def test_start_stop(scheduler):
@@ -25,33 +54,21 @@ def test_start_stop(scheduler):
     with pytest.raises(SYSTEMErr.SchedulerAlreadyStoppedEx):
         scheduler.stop()
 
+    # Wait until stop completed
+    await_stop(scheduler, timeout=10)
 
 
-# def test_proposalUnderExecution(scheduler):
-#     with pytest.raises(SYSTEMErr.NoProposalExecutingEx):
-#         scheduler.proposalUnderExecution()
-#
-#     scheduler.start()
-#     # Wait until observations have started
-#     n_attempts = 100
-#     for _ in range(n_attempts):
-#         if scheduler.proposalUnderExecution() is not None:
-#             break
-#         time.sleep(0.1)
-#     else:
-#         raise TimeoutError("Condition not reached within time")
-#     assert scheduler.proposalUnderExecution() > 0
-#
-#     scheduler.stop()
-#     # Wait until the observation is complete
-#     n_attempts = 100
-#     for _ in range(n_attempts):
-#         try:
-#             scheduler.proposalUnderExecution()
-#             time.sleep(0.1)
-#         except SYSTEMErr.NoProposalExecutingEx:
-#             break
-#     else:
-#         raise TimeoutError("Condition not reached within time")
-#     with pytest.raises(SYSTEMErr.NoProposalExecutingEx):
-#         scheduler.proposalUnderExecution()
+def test_proposalUnderExecution(scheduler):
+    with pytest.raises(SYSTEMErr.NoProposalExecutingEx):
+        scheduler.proposalUnderExecution()
+
+    scheduler.start()
+    # Wait until observations have started
+    await_start(scheduler, timeout=10)
+    assert scheduler.proposalUnderExecution() is not None
+
+    scheduler.stop()
+    # Wait until the observation is complete
+    await_stop(scheduler, timeout=10)
+    with pytest.raises(SYSTEMErr.NoProposalExecutingEx):
+        scheduler.proposalUnderExecution()

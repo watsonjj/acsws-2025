@@ -17,6 +17,7 @@ from concurrent.futures import ThreadPoolExecutor
 import signal
 import threading
 
+
 COMPONENTS = {
     "SCHEDULER_PY_TEST": ("INSTRUMENT_S", "DATABASE_S", "TELESCOPE_S"),
     "SCHEDULER_PY": ("INSTRUMENT", "DATABASE", "TELESCOPE"),
@@ -42,6 +43,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         self._image = None
         self._client = None
         self._executor = ThreadPoolExecutor(max_workers=1)
+        self._stop = threading.Event()
 
     def initialize(self):
         super().initialize()
@@ -56,14 +58,15 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
 
     def cleanUp(self):
         self._logger.logInfo(f"Cleanup component: {self.name}")
-        super().cleanUp()
-        # children = COMPONENTS[self.name]
-        # self._logger.logInfo(f"Releasing child components: {children}")
-        # instrument_name, db_name, telescope_name = children
-        # self.releaseComponent(instrument_name)
-        # self.releaseComponent(db_name)
-        # self.releaseComponent(telescope_name)
         self._executor.shutdown(wait=True, cancel_futures=True)
+        super().cleanUp()
+        children = COMPONENTS[self.name]
+        self._logger.logInfo(f"Releasing child components: {children}")
+        instrument_name, db_name, telescope_name = children
+        self._client.releaseComponent(instrument_name)
+        self._client.releaseComponent(db_name)
+        self._client.releaseComponent(telescope_name)
+        self._client.disconnect()
 
     #DB Methods!
     def _getProposalsFromDB(self):
@@ -95,11 +98,11 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
         image = self._telescope.observe(position, exposureTime)
         return image
 
-    def _process_proposals(self):
+    def _process_proposals(self, stop: threading.Event):
         self._proposalList = self._getProposalsFromDB()
 
         for proposal in self._proposalList:
-            if self._running is False:
+            if stop.is_set():
                 self._logger.logInfo("Proposal aborted")
                 break
             
@@ -109,7 +112,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
             self._turnCameraOn()
 
             for target in target_list:
-                if self._running is False:
+                if stop.is_set():
                     self._logger.logInfo("Observation aborted")
                     break
                 
@@ -122,6 +125,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
 
             self._turnCameraOff()
             self._setProposalStatus(self._pid, PROPOSAL_STATUSES['ready'])
+        self._pid = None
         
 
     def start(self):
@@ -130,7 +134,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
             self._logger.error("Already running")
             raise SYSTEMErrImpl.SchedulerAlreadyRunningExImpl()
         self._running = True
-        self._executor.submit(self._process_proposals)
+        self._executor.submit(self._process_proposals, self._stop)
 
     def stop(self):
         self._logger.logInfo(f"{self.name}: stop called")
@@ -138,6 +142,7 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
             self._logger.error("Already stopped")
             raise SYSTEMErrImpl.SchedulerAlreadyStoppedExImpl()
         self._running = False
+        self._stop.set()
         self._logger.logInfo(f"{self.name}: stop completed")
 
     def proposalUnderExecution(self) -> int:
