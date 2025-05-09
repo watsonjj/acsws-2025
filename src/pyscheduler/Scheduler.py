@@ -103,6 +103,10 @@ class Scheduler(SCHEDULER_MODULE__POA.Scheduler, ACSComponent, ContainerServices
     def _process_proposals(self, started: threading.Event, stop: threading.Event, finished: threading.Event):
         self._proposalList = self._getProposalsFromDB()
 
+        if len(self._proposalList) == 0:
+            # Allow start to return even if no proposals
+            started.set()
+
         for proposal in self._proposalList:
             if stop.is_set():
                 self._logger.logInfo("Proposal aborted")
