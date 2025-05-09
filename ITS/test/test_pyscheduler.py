@@ -46,7 +46,6 @@ def test_already_stopped(scheduler):
 
 def test_start_stop(scheduler):
     scheduler.start()
-    time.sleep(3)
 
     # TODO: isActive method?
     # Error raised if started twice
